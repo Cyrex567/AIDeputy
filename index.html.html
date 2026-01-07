@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-Deputy - The Global Infrastructure for Psychological Stabilization.">
+    <title>AI-Deputy | Psychological Stabilization Infrastructure</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- GSAP for Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'midnight': '#0A0A0B',
+                        'surface': '#111113',
+                        'surface-light': '#1A1A1D',
+                        'clinical-teal': '#0D9488',
+                        'clinical-blue': '#1E40AF',
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #0A0A0B;
+            color: #FAFAFA;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Main Layout */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Header */
+        .app-header {
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            flex-shrink: 0;
+        }
+
+        /* Mode Selector */
+        .mode-selector {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .mode-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .mode-btn:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .mode-btn.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .mode-btn.active.deputy {
+            background: linear-gradient(135deg, rgba(13, 148, 136, 0.3), rgba(13, 148, 136, 0.1));
+            color: #5EEAD4;
+        }
+
+        .mode-btn.active.rcr {
+            background: linear-gradient(135deg, rgba(30, 64, 175, 0.3), rgba(30, 64, 175, 0.1));
+            color: #93C5FD;
+        }
+
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Welcome State */
+        .welcome-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .welcome-logo {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .welcome-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #fff, rgba(255, 255, 255, 0.7));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .welcome-subtitle {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.9375rem;
+            max-width: 400px;
+            line-height: 1.6;
+        }
+
+        .quick-prompts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 2rem;
+            max-width: 500px;
+        }
+
+        .quick-prompt {
+            padding: 0.625rem 1rem;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 100px;
+            font-size: 0.8125rem;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-prompt:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Messages */
+        .message {
+            display: flex;
+            gap: 1rem;
+            max-width: 100%;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: messageIn 0.3s forwards;
+        }
+
+        @keyframes messageIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .message-avatar.ai {
+            background: linear-gradient(135deg, #0D9488, #14B8A6);
+        }
+
+        .message-avatar.ai.rcr-mode {
+            background: linear-gradient(135deg, #1E40AF, #3B82F6);
+        }
+
+        .message-avatar.user {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .message-content {
+            flex: 1;
+            max-width: 75%;
+        }
+
+        .message-bubble {
+            padding: 1rem 1.25rem;
+            border-radius: 16px;
+            font-size: 0.9375rem;
+            line-height: 1.6;
+        }
+
+        .message.ai .message-bubble {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px 16px 16px 4px;
+        }
+
+        .message.user .message-bubble {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px 16px 4px 16px;
+            margin-left: auto;
+        }
+
+        /* Typing Indicator */
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+            padding: 0.5rem 0;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            animation: typingBounce 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingBounce {
+
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+            }
+
+            30% {
+                transform: translateY(-4px);
+            }
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 1rem 1.5rem 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            flex-shrink: 0;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-end;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 0.75rem 1rem;
+            transition: all 0.2s;
+        }
+
+        .input-container:focus-within {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .chat-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 0.9375rem;
+            outline: none;
+            resize: none;
+            min-height: 24px;
+            max-height: 120px;
+            line-height: 1.5;
+        }
+
+        .chat-input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .send-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            background: linear-gradient(135deg, #0D9488, #14B8A6);
+            flex-shrink: 0;
+        }
+
+        .send-btn.rcr-mode {
+            background: linear-gradient(135deg, #1E40AF, #3B82F6);
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Footer Info */
+        .footer-info {
+            text-align: center;
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Scrollbar */
+        .chat-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-area::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .chat-area::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Bilateral Waveform - subtle background */
+        .bilateral-wave {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            pointer-events: none;
+            opacity: 0.4;
+            z-index: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Subtle Background Waveform -->
+    <canvas id="bilateral-wave" class="bilateral-wave"></canvas>
+
+    <!-- Main App Container -->
+    <div class="app-container relative z-10">
+
+        <!-- Header -->
+        <header class="app-header">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-9 h-9 rounded-xl bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center border border-white/10">
+                    <svg class="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <span class="text-base font-semibold tracking-tight">AI-Deputy</span>
+            </div>
+
+            <!-- Mode Selector -->
+            <div class="mode-selector">
+                <button id="btn-deputy" class="mode-btn active deputy">AI-Deputy</button>
+                <button id="btn-rcr" class="mode-btn rcr">RCR</button>
+            </div>
+
+            <div class="flex items-center gap-2 text-xs text-white/30">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span>Encrypted</span>
+            </div>
+        </header>
+
+        <!-- Chat Area -->
+        <div id="chat-area" class="chat-area">
+            <!-- Welcome State (shown when no messages) -->
+            <div id="welcome-state" class="welcome-state">
+                <div class="welcome-logo">
+                    <svg class="w-8 h-8 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                </div>
+                <h1 class="welcome-title">What's on your mind?</h1>
+                <p class="welcome-subtitle">I'm here as a delegated therapeutic presence. Not automation—continuous
+                    stabilization when you need it.</p>
+
+                <div class="quick-prompts">
+                    <button class="quick-prompt" data-prompt="I've been feeling overwhelmed lately">Feeling
+                        overwhelmed</button>
+                    <button class="quick-prompt" data-prompt="Can we do a grounding exercise?">Grounding
+                        exercise</button>
+                    <button class="quick-prompt" data-prompt="I need someone to talk to">Just need to talk</button>
+                    <button class="quick-prompt" data-prompt="Help me with bilateral stimulation">Bilateral
+                        stimulation</button>
+                </div>
+            </div>
+
+            <!-- Messages Container -->
+            <div id="messages-container"></div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <div class="input-container">
+                <textarea id="chat-input" class="chat-input" placeholder="Message AI-Deputy..." rows="1"></textarea>
+                <button id="send-btn" class="send-btn" disabled>
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                </button>
+            </div>
+            <p class="footer-info">AI-Deputy · Global Infrastructure for Psychological Stabilization</p>
+        </div>
+
+    </div>
+
+    <script>
+        // ========================================
+        // DOM ELEMENTS
+        // ========================================
+        const chatArea = document.getElementById('chat-area');
+        const messagesContainer = document.getElementById('messages-container');
+        const welcomeState = document.getElementById('welcome-state');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        const btnDeputy = document.getElementById('btn-deputy');
+        const btnRcr = document.getElementById('btn-rcr');
+        const quickPrompts = document.querySelectorAll('.quick-prompt');
+
+        let currentMode = 'deputy'; // 'deputy' or 'rcr'
+        let hasMessages = false;
+
+        // ========================================
+        // MODE SWITCHING
+        // ========================================
+        btnDeputy.addEventListener('click', () => {
+            if (currentMode === 'deputy') return;
+            currentMode = 'deputy';
+            btnDeputy.classList.add('active');
+            btnRcr.classList.remove('active');
+            sendBtn.classList.remove('rcr-mode');
+            chatInput.placeholder = 'Message AI-Deputy...';
+            updateAvatars();
+        });
+
+        btnRcr.addEventListener('click', () => {
+            if (currentMode === 'rcr') return;
+            currentMode = 'rcr';
+            btnRcr.classList.add('active');
+            btnDeputy.classList.remove('active');
+            sendBtn.classList.add('rcr-mode');
+            chatInput.placeholder = 'Message RCR Protocol...';
+            updateAvatars();
+        });
+
+        function updateAvatars() {
+            document.querySelectorAll('.message-avatar.ai').forEach(avatar => {
+                avatar.classList.toggle('rcr-mode', currentMode === 'rcr');
+            });
+        }
+
+        // ========================================
+        // CHAT FUNCTIONALITY
+        // ========================================
+        chatInput.addEventListener('input', () => {
+            sendBtn.disabled = !chatInput.value.trim();
+            // Auto-resize
+            chatInput.style.height = 'auto';
+            chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+        });
+
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (chatInput.value.trim()) {
+                    sendMessage(chatInput.value.trim());
+                }
+            }
+        });
+
+        sendBtn.addEventListener('click', () => {
+            if (chatInput.value.trim()) {
+                sendMessage(chatInput.value.trim());
+            }
+        });
+
+        quickPrompts.forEach(btn => {
+            btn.addEventListener('click', () => {
+                sendMessage(btn.dataset.prompt);
+            });
+        });
+
+        async function sendMessage(text) {
+            // Hide welcome state on first message
+            if (!hasMessages) {
+                welcomeState.style.display = 'none';
+                hasMessages = true;
+            }
+
+            // Clear input
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+            sendBtn.disabled = true;
+
+            // Add user message
+            addMessage(text, 'user');
+
+            // Show typing indicator
+            const typingEl = addTypingIndicator();
+
+            // Get AI response
+            const response = await AIDeputyAPI.sendMessage(text, currentMode);
+
+            // Remove typing indicator and show response
+            typingEl.remove();
+            addMessage(response.text, 'ai');
+        }
+
+        function addMessage(text, type) {
+            const messageEl = document.createElement('div');
+            messageEl.className = `message ${type}`;
+
+            const avatarClass = type === 'ai' ? `ai ${currentMode === 'rcr' ? 'rcr-mode' : ''}` : 'user';
+            const avatarIcon = type === 'ai'
+                ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>'
+                : '<svg class="w-4 h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>';
+
+            messageEl.innerHTML = `
+                <div class="message-avatar ${avatarClass}">${avatarIcon}</div>
+                <div class="message-content">
+                    <div class="message-bubble">${text}</div>
+                </div>
+            `;
+
+            messagesContainer.appendChild(messageEl);
+            chatArea.scrollTop = chatArea.scrollHeight;
+            return messageEl;
+        }
+
+        function addTypingIndicator() {
+            const typingEl = document.createElement('div');
+            typingEl.className = 'message ai';
+            typingEl.innerHTML = `
+                <div class="message-avatar ai ${currentMode === 'rcr' ? 'rcr-mode' : ''}">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <div class="typing-dots">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(typingEl);
+            chatArea.scrollTop = chatArea.scrollHeight;
+            return typingEl;
+        }
+
+        // ========================================
+        // API INTEGRATION LAYER
+        // ========================================
+        const AIDeputyAPI = {
+            endpoint: null, // Set to your backend URL
+            sessionId: crypto.randomUUID(),
+            onTTSStart: null,
+            onTTSEnd: null,
+
+            async sendMessage(message, mode) {
+                if (!this.endpoint) {
+                    return this.getDemoResponse(message, mode);
+                }
+
+                try {
+                    const response = await fetch(this.endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message, mode, sessionId: this.sessionId,
+                            timestamp: new Date().toISOString()
+                        })
+                    });
+
+                    if (!response.ok) throw new Error(`API error: ${response.status}`);
+                    const data = await response.json();
+
+                    if (this.onTTSStart && data.text) {
+                        this.onTTSStart(data.text, data.audioUrl);
+                    }
+
+                    return {
+                        text: data.text || data.response || data.message,
+                        audioUrl: data.audioUrl || null
+                    };
+                } catch (error) {
+                    console.error('API Error:', error);
+                    return { text: 'Connection interrupted. I\'m still here with you.', error: true };
+                }
+            },
+
+            getDemoResponse(message, mode) {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        const responses = mode === 'deputy'
+                            ? [
+                                "I'm here with you. Take a moment to notice your breathing—what do you feel?",
+                                "That takes courage to share. Let's stay with that feeling together.",
+                                "You're safe here. What's one thing you can see right now?",
+                                "I hear you. Your words matter, and I'm listening fully.",
+                                "Let's ground together. Can you name three things you can touch around you?"
+                            ]
+                            : [
+                                "Protocol acknowledged. Bilateral stabilization patterns active.",
+                                "Processing across 2,847 concurrent sessions. Your input has been integrated.",
+                                "System resilience maintained. Aggregate affect regulation at optimal levels.",
+                                "Crisis response matrix updated. Continuing synchronized monitoring."
+                            ];
+
+                        resolve({
+                            text: responses[Math.floor(Math.random() * responses.length)],
+                            demo: true
+                        });
+                    }, 800 + Math.random() * 700);
+                });
+            },
+
+            configure(options) {
+                Object.assign(this, options);
+                console.log('AI-Deputy API configured:', { endpoint: this.endpoint });
+            }
+        };
+
+        window.AIDeputyAPI = AIDeputyAPI;
+
+        // ========================================
+        // BILATERAL WAVEFORM (subtle background)
+        // ========================================
+        const canvas = document.getElementById('bilateral-wave');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth * 2;
+            canvas.height = 400;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        let phase = 0;
+
+        function drawWave() {
+            const width = canvas.width;
+            const height = canvas.height;
+            ctx.clearRect(0, 0, width, height);
+
+            const color = currentMode === 'deputy' ? '13, 148, 136' : '30, 64, 175';
+
+            ctx.beginPath();
+            ctx.moveTo(0, height);
+
+            for (let x = 0; x < width; x++) {
+                const bilateralOffset = Math.sin(phase) * (width * 0.15);
+                const distFromCenter = Math.abs(x - (width / 2 + bilateralOffset));
+                const falloff = Math.exp(-distFromCenter * 0.002);
+                const y = height - 50 - Math.sin(x * 0.01 + phase * 2) * 30 * falloff;
+                ctx.lineTo(x, y);
+            }
+
+            ctx.lineTo(width, height);
+            ctx.closePath();
+
+            const gradient = ctx.createLinearGradient(0, height - 100, 0, height);
+            gradient.addColorStop(0, `rgba(${color}, 0.15)`);
+            gradient.addColorStop(1, `rgba(${color}, 0)`);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+
+            phase += 0.015;
+            requestAnimationFrame(drawWave);
+        }
+
+        drawWave();
+    </script>
+</body>
+
+</html>
